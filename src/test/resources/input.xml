@@ -1,0 +1,6 @@
+<root>
+   <master><value>master 1</value><details><detail><value>detail 1.1</value></detail><detail><value>detail 1.2</value></detail></details></master>
+   <master><value>master 2</value><details><detail><value>detail 2.1</value></detail><detail><value>detail 2.2</value></detail></details></master>
+   <master><value>master 3</value></master>
+   <master><value>master 4</value><details><detail><value>detail 4.1</value></detail></details></master>
+</root>
