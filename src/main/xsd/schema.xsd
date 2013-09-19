@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://kszbcss.fgov.be/batch" xmlns:tns="http://kszbcss.fgov.be/batch" elementFormDefault="qualified">
+
+    <element name="root" type="tns:RootType"></element>
+    
+    <element name="master" type="tns:MasterType"></element>
+    
+    <element name="detail" type="tns:DetailType"></element>
+    
+    <complexType name="RootType">
+     <sequence>
+      <element name="header" type="string"></element>
+      <element name="masters" type="tns:MastersType" maxOccurs="1" minOccurs="0"></element>
+     </sequence>
+    </complexType>
+    
+    <complexType name="MasterType">
+     <sequence>
+      <element name="value" type="string"></element>
+      <element name="details" type="tns:DetailsType" maxOccurs="1" minOccurs="0"></element>
+     </sequence>
+    </complexType>
+    
+    <complexType name="DetailsType">
+     <sequence>
+      <element name="detail" type="tns:DetailType" maxOccurs="unbounded" minOccurs="1"></element>
+     </sequence>
+    </complexType>
+    
+    <complexType name="DetailType">
+     <sequence>
+      <element name="value" type="string"></element>
+     </sequence>
+    </complexType>
+
+    <complexType name="MastersType">
+     <sequence>
+      <element name="master" type="tns:MasterType" maxOccurs="unbounded" minOccurs="1"></element>
+     </sequence>
+    </complexType>
+    
+</schema>

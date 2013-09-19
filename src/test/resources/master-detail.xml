@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:root xmlns:tns="http://kszbcss.fgov.be/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://kszbcss.fgov.be/batch ../../main/xsd/schema.xsd ">
+  <tns:header>header</tns:header>
+  <tns:masters>
+    <tns:master>
+      <tns:value>master-1</tns:value>
+      <tns:details>
+        <tns:detail>
+          <tns:value>detail-1.1</tns:value>
+        </tns:detail>
+        <tns:detail>
+          <tns:value>detail-1.2</tns:value>
+        </tns:detail>
+      </tns:details>
+    </tns:master>
+    <tns:master>
+      <tns:value>master-2</tns:value>
+      <tns:details>
+        <tns:detail>
+          <tns:value>detail-2.1</tns:value>
+        </tns:detail>
+      </tns:details>
+    </tns:master>
+    <tns:master>
+      <tns:value>master-3</tns:value>
+    </tns:master>
+    <tns:master>
+      <tns:value>master-4</tns:value>
+      <tns:details>
+        <tns:detail>
+          <tns:value>detail-4.1</tns:value>
+        </tns:detail>
+        <tns:detail>
+          <tns:value>detail-4.2</tns:value>
+        </tns:detail>
+        <tns:detail>
+          <tns:value>detail-4.3</tns:value>
+        </tns:detail>
+      </tns:details>
+    </tns:master>
+  </tns:masters>
+</tns:root>

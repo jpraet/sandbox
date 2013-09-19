@@ -190,7 +190,8 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 
 		inputStream = resource.getInputStream();
 		eventReader = XMLInputFactory.newInstance().createXMLEventReader(inputStream);
-		fragmentReader = new DefaultFragmentEventReader(eventReader);
+		fragmentReader = new MasterDetailFragmentEventReader(eventReader, new QName(masterFragmentRootElementNameSpace, masterFragmentRootElementName),
+				new QName(detailFragmentRootElementNameSpace, detailFragmentRootElementName));
 		noInput = false;
 	}
 
@@ -250,6 +251,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	}
 
 	private void readMasterFragment(MasterDetailItem<M, D> item) throws IOException, Exception {
+		System.err.println("READING MASTER");
 		try {
 			fragmentReader.markStartFragment();
 			@SuppressWarnings("unchecked")
@@ -265,6 +267,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	}
 
 	private void readDetailFragment(MasterDetailItem<M, D> item) throws IOException, Exception {
+		System.err.println("READING DETAIL");
 		item.setMaster(currentMasterItem);
 		item.setMasterCount(currentMasterCount);
 		try {
@@ -289,7 +292,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	 *             if the cursor could not be moved. This will be treated as
 	 *             fatal and subsequent calls to read will return null.
 	 */
-	protected boolean moveCursorToNextFragment(XMLEventReader reader) throws NonTransientResourceException {
+	protected boolean moveCursorToNextFragment(XMLEventReader reader) throws NonTransientResourceException {		
 		try {
 			while (true) {
 				while (reader.peek() != null && !reader.peek().isStartElement()) {
