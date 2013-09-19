@@ -20,11 +20,11 @@ import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.file.ResourceAwareItemReaderItemStream;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
 import org.springframework.batch.item.xml.StaxUtils;
-import org.springframework.batch.item.xml.stax.DefaultFragmentEventReader;
 import org.springframework.batch.item.xml.stax.FragmentEventReader;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.oxm.XmlMappingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -159,12 +159,13 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException {
 		if (executionContext.containsKey(getExecutionContextKey(MASTER_COUNT))) {
-			currentMasterCount = executionContext.getInt(getExecutionContextKey(MASTER_COUNT));	
+			currentMasterCount = executionContext.getInt(getExecutionContextKey(MASTER_COUNT));
 		}
 		if (executionContext.containsKey(getExecutionContextKey(DETAIL_COUNT))) {
-			currentDetailCount = executionContext.getInt(getExecutionContextKey(DETAIL_COUNT));	
+			currentDetailCount = executionContext.getInt(getExecutionContextKey(DETAIL_COUNT));
 		}
-		// need to initialize the state before calling super.open() because the latter will call jumpToItem()
+		// need to initialize the state before calling super.open() because the
+		// latter will call jumpToItem()
 		super.open(executionContext);
 	}
 
@@ -190,8 +191,9 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 
 		inputStream = resource.getInputStream();
 		eventReader = XMLInputFactory.newInstance().createXMLEventReader(inputStream);
-		fragmentReader = new MasterDetailFragmentEventReader(eventReader, new QName(masterFragmentRootElementNameSpace, masterFragmentRootElementName),
-				new QName(detailFragmentRootElementNameSpace, detailFragmentRootElementName));
+		fragmentReader = new MasterDetailFragmentEventReader(eventReader, new QName(masterFragmentRootElementNameSpace,
+				masterFragmentRootElementName), new QName(detailFragmentRootElementNameSpace,
+				detailFragmentRootElementName));
 		noInput = false;
 	}
 
@@ -232,7 +234,8 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 				try {
 					success = moveCursorToNextFragment(fragmentReader);
 				} catch (NonTransientResourceException e) {
-					// Prevent caller from retrying indefinitely since this is fatal
+					// Prevent caller from retrying indefinitely since this is
+					// fatal
 					noInput = true;
 					throw e;
 				}
@@ -245,38 +248,35 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 			} else if (detailFragmentRootElementName.equals(startElement.getName().getLocalPart())) {
 				readDetailFragment(item);
 			}
-		} 
+		}
 
 		return item;
 	}
 
-	private void readMasterFragment(MasterDetailItem<M, D> item) throws IOException, Exception {
-		System.err.println("READING MASTER");
-		try {
-			fragmentReader.markStartFragment();
-			@SuppressWarnings("unchecked")
-			M masterFragment = (M) unmarshaller.unmarshal(StaxUtils.getSource(fragmentReader));
-			currentMasterItem = masterFragment;
-			currentDetailCount = 0;
-			currentMasterCount++;
-			item.setMaster(masterFragment);
-			item.setMasterCount(currentMasterCount);			
-		} finally {
-			fragmentReader.reset();
-		}
+	private void readMasterFragment(MasterDetailItem<M, D> item) throws Exception {
+		@SuppressWarnings("unchecked")
+		M masterFragment = (M) unmarshalFragment();
+		currentMasterItem = masterFragment;
+		currentDetailCount = 0;
+		currentMasterCount++;
+		item.setMaster(masterFragment);
+		item.setMasterCount(currentMasterCount);
 	}
 
-	private void readDetailFragment(MasterDetailItem<M, D> item) throws IOException, Exception {
-		System.err.println("READING DETAIL");
+	private void readDetailFragment(MasterDetailItem<M, D> item) throws Exception {
+		@SuppressWarnings("unchecked")
+		D detailFragment = (D) unmarshalFragment();
 		item.setMaster(currentMasterItem);
 		item.setMasterCount(currentMasterCount);
+		currentDetailCount++;
+		item.setDetail(detailFragment);
+		item.setDetailCount(currentDetailCount);
+	}
+
+	private Object unmarshalFragment() throws Exception {
+		fragmentReader.markStartFragment();
 		try {
-			fragmentReader.markStartFragment();
-			@SuppressWarnings("unchecked")
-			D detailFragment = (D) unmarshaller.unmarshal(StaxUtils.getSource(fragmentReader));
-			currentDetailCount++;
-			item.setDetail(detailFragment);
-			item.setDetailCount(currentDetailCount);
+			return unmarshaller.unmarshal(StaxUtils.getSource(fragmentReader));
 		} finally {
 			fragmentReader.markFragmentProcessed();
 		}
@@ -292,7 +292,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	 *             if the cursor could not be moved. This will be treated as
 	 *             fatal and subsequent calls to read will return null.
 	 */
-	protected boolean moveCursorToNextFragment(XMLEventReader reader) throws NonTransientResourceException {		
+	protected boolean moveCursorToNextFragment(XMLEventReader reader) throws NonTransientResourceException {
 		try {
 			while (true) {
 				while (reader.peek() != null && !reader.peek().isStartElement()) {
@@ -325,12 +325,12 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 	 * jumpToItem is overridden because reading in and attempting to bind an
 	 * entire fragment is unacceptable in a restart scenario, and may cause
 	 * exceptions to be thrown that were already skipped in previous runs.
-	 */
+	 */	
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void jumpToItem(int itemIndex) throws Exception {
-		// we use the currentMasterCount and currentDetailCount instead of
-		// itemIndex to jump to the item
-		for (int i = 0; i < currentMasterCount; i++) {
+		// we use the currentMasterCount and currentDetailCount instead of itemIndex to jump to the item
+		for (int i = 0; i < currentMasterCount - 1; i++) {
 			try {
 				readToStartMasterFragment();
 				readToEndMasterFragment();
@@ -345,7 +345,10 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 					throw e;
 				}
 			}
-		}
+		}		
+		// read current master item for restart
+		moveCursorToNextFragment(eventReader);
+		currentMasterItem = (M) unmarshalFragment();		
 		for (int i = 0; i < currentDetailCount; i++) {
 			try {
 				readToStartDetailFragment();
@@ -376,7 +379,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 			if (nextEvent.isStartElement()
 					&& ((StartElement) nextEvent).getName().getLocalPart().equals(masterFragmentRootElementName)) {
 				return;
-			}
+			}			
 		}
 	}
 
@@ -392,7 +395,7 @@ public class StaxEventMasterDetailItemReader<M, D> extends
 			if (nextEvent.isEndElement()
 					&& ((EndElement) nextEvent).getName().getLocalPart().equals(masterFragmentRootElementName)) {
 				return;
-			}
+			}			
 		}
 	}
 
