@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:detail xmlns:tns="http://kszbcss.fgov.be/batch"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://kszbcss.fgov.be/batch ../../main/xsd/schema.xsd" >
+   <tns:value>test</tns:value>
+</tns:detail>

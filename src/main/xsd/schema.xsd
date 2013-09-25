@@ -7,6 +7,8 @@
     
     <element name="detail" type="tns:DetailType"></element>
     
+    <element name="transformedDetail" type="tns:TransformedDetailType"></element>
+    
     <complexType name="RootType">
      <sequence>
       <element name="header" type="string"></element>
@@ -36,6 +38,12 @@
     <complexType name="MastersType">
      <sequence>
       <element name="master" type="tns:MasterType" maxOccurs="unbounded" minOccurs="1"></element>
+     </sequence>
+    </complexType>
+    
+    <complexType name="TransformedDetailType">
+     <sequence>
+      <element name="transformedValue" type="string"></element>
      </sequence>
     </complexType>
     
